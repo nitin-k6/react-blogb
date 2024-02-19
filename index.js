@@ -21,7 +21,7 @@ app.use(express.json());
 // app.use("/images", express.static(path.join(__dirname, "/images")));
 app.use("/images", express.static(path.join(__dirname,"/images")));
 const corsOptions = {
-  origin: 'http://localhost:3001',
+  origin: 'https://reactblog2f.onrender.com',
   // other options...
 };
 
