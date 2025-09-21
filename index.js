@@ -21,21 +21,24 @@ app.use(express.json());
 // app.use("/images", express.static(path.join(__dirname, "/images")));
 app.use("/images", express.static(path.join(__dirname,"/images")));
 const corsOptions = {
-  origin: 'https://reactblog2f.onrender.com',
+  origin: 'https://react-blogf.netlify.app/',
   // other options...
 };
 
 app.use(cors(corsOptions));
 
 
-const mongo_url = "mongodb+srv://nitinkumar67:nitinkumar67@cluster0.99nqtfb.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
-async function connect(){
-    try{
-        await mongoose.connect(mongo_url)
-        // await mongoose.connect(process.env.mongo_url) // not able to use it so no point of keeping mongo_url in .env file
+
+
+
+const mongo_url = process.env.MONGO_URL; // Read from .env
+
+async function connect() {
+    try {
+        await mongoose.connect(mongo_url);
         console.log("Connected to MongoDB");
-    } catch(error){
-        console.log(error);
+    } catch (error) {
+        console.error("MongoDB connection error:", error);
     }
 }
 
