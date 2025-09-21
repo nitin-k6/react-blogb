@@ -28,7 +28,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 
-const mongo_url = "mongodb+srv://nitinkumar67:nitinkumar67@cluster0.99nqtfb.mongodb.net/?retryWrites=true&w=majority";
+const mongo_url = "mongodb+srv://nitinkumar67:nitinkumar67@cluster0.99nqtfb.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 async function connect(){
     try{
         await mongoose.connect(mongo_url)
