@@ -21,7 +21,10 @@ app.use(express.json());
 // app.use("/images", express.static(path.join(__dirname, "/images")));
 app.use("/images", express.static(path.join(__dirname,"/images")));
 const corsOptions = {
-  origin: 'https://react-blogf.netlify.app/',
+  origin: 'https://react-blogf.netlify.app',
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true, // if you need cookies or auth headers
   // other options...
 };
 
