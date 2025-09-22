@@ -11,8 +11,7 @@ const router =require('express').Router();
  const Category= require('./models/Category');
  
  const multer = require('multer');
-const Register = require('./models/User');
-const Login =    require('./models/User')
+// Removed redundant imports - using User model directly
 require("dotenv").config() // haven't used dotenv.config()
 const bcrypt = require('bcrypt');
 const path = require('path');
@@ -34,14 +33,18 @@ app.use(cors(corsOptions));
 
 
 
-const mongo_url = process.env.MONGO_URL; // Read from .env
+const mongo_url = process.env.MONGO_URL || "mongodb://localhost:27017/reactblog"; // Read from .env or use default
 
 async function connect() {
     try {
         await mongoose.connect(mongo_url);
-        console.log("Connected to MongoDB");
+        console.log("Connected to MongoDB successfully!");
     } catch (error) {
-        console.error("MongoDB connection error:", error);
+        console.error("MongoDB connection error:", error.message);
+        console.log("Please make sure MongoDB is installed and running");
+        console.log("You can install MongoDB from: https://www.mongodb.com/try/download/community");
+        console.log("Or use MongoDB Atlas (cloud): https://www.mongodb.com/atlas");
+        // Don't exit, let the server run without DB for now
     }
 }
 
@@ -54,8 +57,12 @@ connect();
 // });   
 
 
-app.listen(process.env.PORT, ()=>{
-    console.log("Port is running at", process.env.PORT);
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, ()=>{
+    console.log("=================================");
+    console.log(`Server is running on port ${PORT}`);
+    console.log(`Visit: http://localhost:${PORT}`);
+    console.log("=================================");
 });
 
 
@@ -88,35 +95,47 @@ app.post("/upload", upload.single("file"), (req, res) => {
 
 //Now for saving data we get from the request or client to the database //Fetching and Saving
 //Registration
- app.use('/register', async(req, res)=>{  // can use app.post
+app.post('/register', async(req, res)=>{  // Fixed: using POST method
      try{
+        console.log("Registration attempt for:", req.body.username, req.body.email);
         const salt= await bcrypt.genSalt(10);
         const hasedPass= await bcrypt.hash(req.body.password, salt)
-      const register = await Register.create({
+      const register = await User.create({
         username: req.body.username,
         email: req.body.email,
          password:hasedPass,                  // password:req.body.password
       });
+      console.log("User registered successfully:", register.username);
       res.status(200).send(register);
      }catch(error){
-      console.log(error.message);
+      console.log("Registration error:", error.message);
       res.status(500).json({message: error.message})
      }
   })
 
 //login
-    app.post('/login' , async (req,res) =>{
+app.post('/login' , async (req,res) =>{
     try {
-        const user = await Register.findOne({username: req.body.username});
+        const identifier = (req.body.username || "").trim();
+        console.log("Login attempt for identifier:", identifier);
+        const user = await User.findOne({
+            $or: [{ username: identifier }, { email: identifier }]
+        });
+        console.log("User found:", user ? "Yes" : "No");
         if(!user){
+            console.log("User not found");
             return res.status(400).json("wrong credentials")
         }
         const validated = await bcrypt.compare(req.body.password, user.password);
+        console.log("Password validated:", validated);
         if(!validated){
+            console.log("Invalid password");
             return res.status(400).json("wrong credentials");
         }
-        res.status(200).json(user);
+        const { password, ...userWithoutPassword } = user.toObject();
+        res.status(200).json(userWithoutPassword);
     } catch(err){
+        console.error("Login error:", err);
         res.status(500).json(err);
     }
 });
@@ -126,16 +145,16 @@ app.post("/upload", upload.single("file"), (req, res) => {
 app.put('/users/:id', async  (req, res) =>{
     try{
       const {id}=req.params;
-      const user = await User.findByIdAndUpdate(id, req.body)
+      const user = await User.findByIdAndUpdate(id, req.body, { new: true })
       if(!user){
           return res.status(404).json({message:`cannot find user ${id}`})
-    }
-    res.status(200).json(user);
+      }
+      const { password, ...userWithoutPassword } = user.toObject();
+      res.status(200).json(userWithoutPassword);
     }
     catch(error){
       res.status(500).json({message: error.message});
     }
-       
   })
 
   
